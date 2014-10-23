@@ -89,13 +89,12 @@ class LondonLibrariesApi {
 			$rentals[$i]['title'] = $rental->find('.TitleListResultsCenterStyle4Reduced a', 0)->innertext;
 			$rentals[$i]['author'] = str_replace('By ', '', $rental->find('.TitleListResultsCenterStyle4Reduced h2', 1)->innertext);
 			
+			//Type field is formatted like this: <img ... >Music CD 
 			preg_match('/>([a-z ]*)/i', $rental->find('.TitleListResultsRecordIconStyle4', 0)->innertext, $matches);
-			$rentals[$i]['type'] = $matches[1];
+			$rentals[$i]['type'] = $matches[1]; 
 			
-			//print_r($rental->find('.TitleListResultsRightStyle4Extended', 0)->innertext);
-			
+			//Extended data is formatted like this: <strong>title</strong>DATA<strong>title2...
 			preg_match_all('/<\/strong>([£\.0-9\/]*)/', $rental->find('.TitleListResultsRightStyle4Extended', 0)->innertext, $matches);
-			//print_r($matches);
 			$rentals[$i]['due_date'] = $matches[1][0];
 			$rentals[$i]['hire_fee'] = $matches[1][1];
 			$rentals[$i]['overdue_fee'] = $matches[1][2];
