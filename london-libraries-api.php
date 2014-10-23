@@ -140,12 +140,16 @@ class LondonLibrariesApi {
 		echo 'getPastLoans: Not implemented';
 	}
 	
-	public function search() {
+	public function search($query) {
 		echo 'search: Not implemented';
 	}
 	
 	public function getReservations() {
 		echo 'getReservations: Not implemented';
+	}
+	
+	public function getExtendedItemData($referenceId) {
+		echo 'getExtendedItemData: Not implemented';
 	}
 	
 	//MISC FUNCTIONS

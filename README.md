@@ -12,8 +12,8 @@ Very much a work in progress, please contribute:
 https://github.com/stephenbeckett/LondonLibrariesApi/
 
 Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails()
-Still to do: getCharges(), getPastLoans(), getReservations(), search()
-Eventually: Slim based frontend
+To do: getCharges(), getPastLoans(), getReservations(), search(query), getExtendedItemData(referenceId)
+To do after that: Setting functions such as extendReservation(), then a slim based frontend
 
 PHP 5+ required.
 
