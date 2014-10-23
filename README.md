@@ -1,6 +1,10 @@
-LondonLibrariesApi v1.0 by Stephen Beckett, http://stevebeckett.com, http://twitter.com/StephenBeckett
+LondonLibrariesApi v1.0
+==============
+**by Stephen Beckett, http://stevebeckett.com, http://twitter.com/StephenBeckett**
 
---- LICENSE ---
+
+LICENSE
+--------------
 	
 Copyright 2014 Stephen Beckett (http://www.stevebeckett.com, steve@stevebeckett.com)
 
@@ -16,7 +20,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
---- ABOUT ---
+ABOUT
+--------------
 
 A quick & dirty API for the London Libraries website - https://www.londonlibraries.gov.uk
 
@@ -29,13 +34,14 @@ Eventually: Slim based frontend
 
 PHP 5+ required.
 
---- USAGE ---
+USAGE
+--------------
 
-$library = new LondonLibrariesApi();
+	$library = new LondonLibrariesApi();
 
-if ($library->login(12345678901234, 1234)) {
-	print_r($library->getCurrentLoans());
-	print_r($library->getPersonalDetails());
-} else {
-	echo $library->error();
-}
+	if ($library->login(12345678901234, 1234)) {
+		print_r($library->getCurrentLoans());
+		print_r($library->getPersonalDetails());
+	} else {
+		echo $library->error();
+	}
