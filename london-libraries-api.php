@@ -159,19 +159,19 @@ class LondonLibrariesApi {
 			)
 		);
 	
+		//If post data provided add and change method
 		if (sizeof($postData) > 0) {
-			$opts['http']['content'] = http_build_query($postData); //Strip off trailing &
+			$opts['http']['content'] = http_build_query($postData);
 			$opts['http']['method'] = 'POST';
 		}
-	
+		
+		//Add cookie strings
 		$cookiesStr = '';
 		foreach ($this->cookies as $name=>$value) {
 			$cookiesStr .= "$name=$value; ";
 		}
 		
 		$opts['http']['header'] = "Cookie: ".substr($cookiesStr, 0, -2)."\r\n";
-		
-		//print_r($opts);
 		
 		return stream_context_create($opts);
 	}
@@ -204,7 +204,6 @@ class LondonLibrariesApi {
 	}
 	
 	private function setCookie($name, $value) {
-		//echo "$name = $value";
 		$this->cookies[$name] = $value;
 	}
 };
