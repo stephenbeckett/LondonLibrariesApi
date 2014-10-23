@@ -1,6 +1,15 @@
 <?php
 
-require_once('london-libraries-exceptions.php');
+//What: A quick & dirty API for the London Libraries website - https://www.londonlibraries.gov.uk
+//Who: Stephen Beckett - steve@stevebeckett.com twitter.com/stephenbeckett
+//Where: https://github.com/stephenbeckett/LondonLibrariesApi/
+
+//v1.0
+//Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails()
+//Still to do: getCharges(), getPastLoans(), getReservations(), search()
+//Contribute: https://github.com/stephenbeckett/LondonLibrariesApi/
+
+//require_once('london-libraries-exceptions.php');
 require_once('simple_html_dom.php');
 
 class LondonLibrariesApi {
@@ -17,46 +26,18 @@ class LondonLibrariesApi {
 		$this->cookies = array();
 	}
 	
-	private function buildContext($postData = array()) {
-	
-		$opts = array(
-			'http'=>array(
-				'method' => "GET",
-				'header' => "Accept-language: en\r\n"
-			)
-		);
-	
-		if (sizeof($postData) > 0) {
-			$opts['http']['content'] = http_build_query($postData); //Strip off trailing &
-			$opts['http']['method'] = 'POST';
-		}
-	
-		$cookiesStr = '';
-		foreach ($this->cookies as $name=>$value) {
-			$cookiesStr .= "$name=$value; ";
-		}
-		
-		$opts['http']['header'] = "Cookie: ".substr($cookiesStr, 0, -2)."\r\n";
-		
-		//print_r($opts);
-		
-		return stream_context_create($opts);
-	}
-	
 	//API METHODS
-	//	Auth
+	//Auth
 	public function login($membershipId, $pin) {
-		//Attempt to log in
-		
-		//Call once to get viewstate and eventvalidation
+		//Call login form once to get viewstate and eventvalidation fields
 		$html = file_get_contents($this->libraryUrl.'/00_002_login.aspx');
-		$this->setCookie('ASP.NET_SessionId', substr($http_response_header[6], 30, 24)); //Not v robust, could iterate responses + regex
+		$this->setCookie('ASP.NET_SessionId', substr($http_response_header[6], 30, 24)); //Not v robust, could iterate headers + regex
 		$dom = str_get_html($html);
 		
 		$AspViewState = $dom->find('#__VIEWSTATE', 0)->attr['value'];
 		$AspEventValidation = $dom->find('#__EVENTVALIDATION', 0)->attr['value'];
 		
-		//Submit with password & username
+		//Submit with password & username (& ASP meta data)
 		$postData = array(
 			'__VIEWSTATE' => $AspViewState,
 			'__EVENTVALIDATION' => $AspEventValidation,
@@ -70,33 +51,36 @@ class LondonLibrariesApi {
 		
 		//Check if logged in
 		if ($dom->find('#ctl00_LoginInfoControl1 span', 0)) {
-			//Logged in
-			preg_match('/=([a-z0-9]*);/i', $http_response_header[7], $matches);
+			//Log in succeeded 
+			preg_match('/=([a-z0-9]*);/i', $http_response_header[7], $matches); //Get viewpoint cookie
 			$this->setCookie('viewpoint', $matches[1]);
-			$surname = $dom->find('.borrowername', 0)->innertext;
+			$surname = $dom->find('.borrowername', 0)->innertext; //Current user surname
 			$this->setMemberDetails($membershipId, $pin, $surname);
 			$this->loggedIn = true;
 			return true;
 		} else {
-			$this->error = $dom->find('#ctl00_ContentPlaceCenterContent_login2 .error', 0)->innertext;
+			//Log in failed
+			$this->error = $dom->find('#ctl00_ContentPlaceCenterContent_login2 .error', 0)->innertext; //Get error message (throw here?)
 			$this->loggedIn = false;
 			return false;
 		}
 	}
 	
 	public function logout() {
-		//Sign out from site
+		//TODO Sign out from site
 		//Clear session id
 		$this->loggedIn = false;
 	}
 	
 	public function getCurrentLoans() {
+		//Get page
 		$dom = file_get_html($this->libraryUrl.'/01_YourAccount/01_002_YourLoans.aspx', false, $this->buildContext());
 		
 		$rentalsDom = $dom->find('.TitleListResultsItemContainerStyle4');
 		$rentals = array();
 		$i = 0;
 		
+		//Iterate over each rental item, add to array
 		foreach ($rentalsDom as $rental) {
 			$rentals[$i] = array();
 			$rentals[$i]['record_number'] = $rental->find('.TitleListResultsRecordNumber input', 0)->attr['value'];
@@ -123,13 +107,11 @@ class LondonLibrariesApi {
 		return $rentals;
 	}
 	
-	public function getReservations() {
-		
-	}
-	
 	public function getPersonalDetails() {
+		//Get page
 		$dom = file_get_html($this->libraryUrl.'/01_YourAccount/01_028_YourPersonalDetails.aspx', false, $this->buildContext());
 		
+		//Parse details
 		$details = array();
 		$details['address'] = $dom->find('#ctl00_ContentPlaceCenterContent_borrowerAddressContainer', 0)->innertext;
 		$details['phone_main'] = $dom->find('#ctl00_ContentPlaceCenterContent_borrowerTelephoneContainer', 0)->innertext;
@@ -145,34 +127,66 @@ class LondonLibrariesApi {
 		$details['date_of_birth'] = $dom->find('#ctl00_ContentPlaceCenterContent_DOBValue', 0)->innertext;
 		$details['surname'] = $this->surname;
 		
+		//Clean up (whitespace etc.)
 		foreach ($details as $key=>$value) $details[$key] = $this->clean($value);
-		
-		//echo $dom->save();
 		
 		return $details;
 	}
 	
-	private function clean($input) {
-		return trim(str_replace('  ', ' ', preg_replace('/<(.*)>/', ',', preg_replace('/\t+/', '', $input))));
-	}
-	
 	public function getCharges() {
-		
+		echo 'getCharges: Not implemented';
 	}
 	
 	public function getPastLoans() {
-		
+		echo 'getPastLoans: Not implemented';
 	}
 	
 	public function search() {
+		echo 'search: Not implemented';
+	}
+	
+	public function getReservations() {
+		echo 'getReservations: Not implemented';
+	}
+	
+	//MISC FUNCTIONS
+	//Builds the context for web requests w/cookies & post data as needed
+	private function buildContext($postData = array()) {
+	
+		$opts = array(
+			'http'=>array(
+				'method' => "GET",
+				'header' => "Accept-language: en\r\n"
+			)
+		);
+	
+		if (sizeof($postData) > 0) {
+			$opts['http']['content'] = http_build_query($postData); //Strip off trailing &
+			$opts['http']['method'] = 'POST';
+		}
+	
+		$cookiesStr = '';
+		foreach ($this->cookies as $name=>$value) {
+			$cookiesStr .= "$name=$value; ";
+		}
 		
+		$opts['http']['header'] = "Cookie: ".substr($cookiesStr, 0, -2)."\r\n";
+		
+		//print_r($opts);
+		
+		return stream_context_create($opts);
+	}
+	
+	//Cleans up the given string by removing whitespace, double spaces, replaces tags with commas
+	private function clean($input) {
+		return trim(str_replace('  ', ' ', preg_replace('/<(.*)>/', ',', preg_replace('/\t+/', '', $input))));
 	}
 	
 	
 	//GETTERS
 	public function loggedIn() {
 		if (strlen($this->sessionId) > 0 && $this->loggedIn == true) {
-			//Check session ID works
+			//TODO Check session ID works
 			return true;
 		}
 		return false;
