@@ -1,4 +1,4 @@
-LondonLibrariesApi v1.0 by Stephen Beckett, stevebeckett.com
+LondonLibrariesApi v1.0 by Stephen Beckett, http://stevebeckett.com, http://twitter.com/StephenBeckett
 
 --- LICENSE ---
 	
