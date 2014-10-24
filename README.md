@@ -11,11 +11,13 @@ A quick & dirty API for the London Libraries website - https://www.londonlibrari
 Very much a work in progress, please contribute:
 https://github.com/stephenbeckett/LondonLibrariesApi/
 
+There's no rate limiting built in - please use responsibly. 
+
 Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails()
 
-To do: getCharges(), getPastLoans(), getReservations(), search(query), getExtendedItemData(referenceId)
+To do: getCharges(), getPastLoans(), getReservations(), search(query), getExtendedItemData(itemId)
 
-To do after that: Setting functions such as extendReservation(), then a slim based frontend
+To do after that: Setting functions such as extendReservation(itemId), reserveItem(itemId), then a slim based RESTful frontend
 
 PHP 5+ required.
 
