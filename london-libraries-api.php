@@ -4,9 +4,7 @@
 //Who: Stephen Beckett - steve@stevebeckett.com twitter.com/stephenbeckett
 //Where: https://github.com/stephenbeckett/LondonLibrariesApi/
 
-//v1.0
-//Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails()
-//Still to do: getCharges(), getPastLoans(), getReservations(), search()
+//v1.1
 //Contribute: https://github.com/stephenbeckett/LondonLibrariesApi/
 
 //require_once('london-libraries-exceptions.php');
@@ -83,7 +81,7 @@ class LondonLibrariesApi {
 		//Iterate over each rental item, add to array
 		foreach ($rentalsDom as $rental) {
 			$rentals[$i] = array();
-			$rentals[$i]['record_number'] = $rental->find('.TitleListResultsRecordNumber input', 0)->attr['value'];
+			$rentals[$i]['id'] = $rental->find('.TitleListResultsRecordNumber input', 0)->attr['value'];
 			$rentals[$i]['image_url'] = $rental->find('.TitleListResultsRecordImage img', 0)->attr['src'];
 			$rentals[$i]['reference'] = $rental->find('.TitleListResultsCenterStyle4Reduced a', 0)->attr['title'];
 			$rentals[$i]['title'] = $rental->find('.TitleListResultsCenterStyle4Reduced a', 0)->innertext;
@@ -132,6 +130,65 @@ class LondonLibrariesApi {
 		return $details;
 	}
 	
+	public function getExtendedItemData($isbn) {
+		$dom = file_get_html($this->libraryUrl."/02_Catalogue/02_005_TitleInformation.aspx?Page=1&rcn=$isbn&fr=yl", false, $this->buildContext());
+		
+		//General info
+		$item = array();
+		$table = $dom->find('.TitleInformationTable tbody', 0);
+		$item['isbn'] = 				$table->find('tr', 0)->find('td', 0)->innertext;
+		$item['local_control_number'] = $table->find('tr', 1)->find('td', 0)->innertext;
+		$item['title'] = 				$table->find('tr', 2)->find('td', 0)->innertext;
+		$item['publication_details'] = 	$table->find('tr', 3)->find('td', 0)->innertext;
+		$item['physical_description'] = $table->find('tr', 4)->find('td', 0)->innertext;
+		$item['general_note'] = 		$table->find('tr', 5)->find('td', 0)->innertext;
+		$item['contents_note'] = 		$table->find('tr', 6)->find('td', 0)->innertext;
+		$item['publishers_number'] = 	$table->find('tr', 7)->find('td', 0)->innertext;
+		$item['name_added_entry'] = 	$table->find('tr', 8)->find('td', 0)->innertext;
+		
+		//More complicated stuff
+		preg_match('/>([a-z ]*)/i', $dom->find('#TitleInformationRecordIconStyle4', 0)->innertext, $matches);
+		$item['type'] = $matches[1]; 
+		preg_match('/([0-9]*) - Copies on order/i', $dom->find('#ctl00_ContentPlaceCenterContent_copyAvailabilityDisplay p', 0)->innertext, $matches);
+		$item['copies_on_order'] = $matches[1];
+		preg_match('/([0-9]*) copies available/i', $dom->find('#TitleInformationStyle4Row1Right', 0)->innertext, $matches);
+		$item['copies_available'] = $matches[1];
+		
+		foreach ($item as $key=>$value) $item[$key] = $this->clean($value); //Trim etc.
+		
+		$item['copies'] = array();
+		
+		//Copy availability
+		$copies = $dom->find('#ctl00_ContentPlaceCenterContent_copyAvailabilityDisplay table tbody tr');
+		
+		$detailHeaders = array();
+		
+		$i = 0;
+		foreach ($copies as $copy) {
+			if ($i == 0) {
+				$details = $copy->find('th'); //Header row
+			} else {
+				$details = $copy->find('td'); //Data row
+				$item['copies'][] = array();
+			}
+			
+			$x = 0;
+			foreach ($details as $detail) {
+				if ($i == 0) {
+					//Get header titles from header row
+					$detailHeaders[] =  strtolower(str_replace(' ', '_', trim($detail->innertext)));
+				} else {
+					//Data row
+					$item['copies'][$i-1][$detailHeaders[$x]] = trim($detail->innertext);
+				}
+				$x++;
+			}
+			$i++;
+		}
+		
+		return $item;		
+	}
+	
 	public function getCharges() {
 		echo 'getCharges: Not implemented';
 	}
@@ -146,10 +203,6 @@ class LondonLibrariesApi {
 	
 	public function getReservations() {
 		echo 'getReservations: Not implemented';
-	}
-	
-	public function getExtendedItemData($referenceId) {
-		echo 'getExtendedItemData: Not implemented';
 	}
 	
 	//MISC FUNCTIONS

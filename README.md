@@ -1,4 +1,4 @@
-LondonLibrariesApi v1.0
+LondonLibrariesApi v1.1
 ==============
 **by Stephen Beckett, http://stevebeckett.com, http://twitter.com/StephenBeckett**
 
@@ -13,9 +13,9 @@ https://github.com/stephenbeckett/LondonLibrariesApi/
 
 There's no rate limiting built in - please use responsibly. 
 
-Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails()
+Implemented api methods: login(membershipid, pin), logout(), getCurrentLoans(), getPersonalDetails(), getExtendedItemData(isbn)
 
-To do: getCharges(), getPastLoans(), getReservations(), search(query), getExtendedItemData(itemId)
+To do: getCharges(), getPastLoans(), getReservations(), search(query)
 
 To do after that: Setting functions such as extendReservation(itemId), reserveItem(itemId), then a slim based RESTful frontend
 
