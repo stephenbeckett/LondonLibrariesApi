@@ -1,6 +1,6 @@
 LondonLibrariesApi v1.1
 ==============
-**by Stephen Beckett, http://stevebeckett.com, http://twitter.com/StephenBeckett**
+**by Stephen Beckett, http://twitter.com/StephenBeckett**
 
 
 ABOUT
